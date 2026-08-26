@@ -1,20 +1,30 @@
-# Virtual Environments
+# Node & NPM dependencies & build artifacts
+node_modules/
+cli/node_modules/
+dist/
+cli/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python virtual environments & bytecode cache
 .venv/
 venv/
 env/
-
-# Python cache
 __pycache__/
 *.pyc
 
 # Environment secrets
 .env
+*.env
+cli/.env
 
-# Reports & logs
+# Output reports & local test logs
 reports/
+cli/reports/
 *.log
 
-# OS junk
+# OS & IDE metadata
 .DS_Store
 Thumbs.db
 .vscode/
