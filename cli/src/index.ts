@@ -28,8 +28,6 @@ marked.use(
   }) as any
 );
 
-const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-
 function printBanner() {
   console.log(
     boxen(
@@ -53,33 +51,40 @@ function printBanner() {
 async function main() {
   printBanner();
 
-  if (!apiKey) {
-    console.log(
-      chalk.yellow(
-        "\n[WARNING] GEMINI_API_KEY not found. Please set GEMINI_API_KEY in your environment or .env file.\n"
-      )
-    );
-  }
-
-  const app = createProbeAgent(apiKey || "");
-  const messages: BaseMessage[] = [PROBE_SYSTEM_MESSAGE];
-
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
-  const promptUser = (): Promise<string> => {
+  const promptUser = (questionText: string): Promise<string> => {
     return new Promise((resolve) => {
-      rl.question(chalk.bold.green("\nYou: "), (answer) => {
+      rl.question(questionText, (answer) => {
         resolve(answer.trim());
       });
     });
   };
 
+  let apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+
+  if (!apiKey) {
+    console.log(chalk.yellow("🔑 No GEMINI_API_KEY found in your environment or .env file."));
+    console.log(chalk.dim("Get a free key from https://aistudio.google.com/\n"));
+    apiKey = await promptUser(chalk.bold.cyan("Enter your Gemini API Key: "));
+    
+    if (!apiKey) {
+      console.log(chalk.red("\nError: An API key is required to run ProbeAI. Exiting...\n"));
+      rl.close();
+      process.exit(1);
+    }
+    console.log(chalk.green("✅ API Key registered for this session.\n"));
+  }
+
+  const app = createProbeAgent(apiKey);
+  const messages: BaseMessage[] = [PROBE_SYSTEM_MESSAGE];
+
   while (true) {
     try {
-      const input = await promptUser();
+      const input = await promptUser(chalk.bold.green("\nYou: "));
       if (!input) continue;
 
       if (input.toLowerCase() === "exit" || input.toLowerCase() === "quit") {
