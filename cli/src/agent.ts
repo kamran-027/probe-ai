@@ -2,7 +2,6 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { StateGraph, START, Annotation } from "@langchain/langgraph";
 import { BaseMessage, SystemMessage, AIMessage } from "@langchain/core/messages";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
-import chalk from "chalk";
 
 import { fetchOpenApiSpecTool } from "./tools/openapi.js";
 import { authenticateViaLoginTool, setAuthHeaderTool } from "./tools/auth.js";
@@ -34,6 +33,7 @@ export function createProbeAgent(apiKey: string) {
     model: "gemini-3.6-flash",
     temperature: 0.2,
     apiKey,
+    maxRetries: 3, // Auto-retry on transient Google 503 spikes
   }).bindTools(tools);
 
   const callModel = async (state: typeof GraphState.State) => {

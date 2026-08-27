@@ -2,15 +2,16 @@ import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import axios from "axios";
 import chalk from "chalk";
+import { logStep } from "../ui.js";
 
 export const fetchOpenApiSpecTool = tool(
   async ({ baseUrl }: { baseUrl: string }) => {
-    console.log(chalk.cyan(`\n🔍 [Tool: fetch_openapi_spec] Probing: ${baseUrl}`));
-    
     let targetUrl = baseUrl.replace(/\/+$/, "");
     if (!targetUrl.endsWith("openapi.json")) {
       targetUrl = `${targetUrl}/openapi.json`;
     }
+
+    logStep("🔍", "Probing OpenAPI Spec", chalk.cyan(targetUrl));
 
     try {
       const response = await axios.get(targetUrl, { timeout: 10000 });
@@ -35,6 +36,8 @@ export const fetchOpenApiSpecTool = tool(
         }
       }
 
+      logStep("✓", `Discovered ${endpointsSummary.length} endpoints`, chalk.dim(`(API v${info.version || "1.0"})`));
+
       return JSON.stringify(
         {
           title: info.title || "API Spec",
@@ -47,6 +50,7 @@ export const fetchOpenApiSpecTool = tool(
         2
       );
     } catch (err: any) {
+      logStep("✕", "Could not fetch OpenAPI spec", chalk.red(err.message));
       return `Could not fetch OpenAPI spec from ${targetUrl}: ${err.message}`;
     }
   },

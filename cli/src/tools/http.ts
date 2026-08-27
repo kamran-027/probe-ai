@@ -3,6 +3,7 @@ import { z } from "zod";
 import axios from "axios";
 import chalk from "chalk";
 import { sessionHeaders, testExecutionLogs } from "./state.js";
+import { formatMethodBadge, formatStatusBadge } from "../ui.js";
 
 export const executeHttpRequestTool = tool(
   async ({
@@ -19,8 +20,6 @@ export const executeHttpRequestTool = tool(
     bodyJson?: string;
   }) => {
     const cleanMethod = method.trim().toUpperCase();
-    console.log(chalk.yellow(`\n⚡ [Tool: execute_http_request] ${cleanMethod} ${url}`));
-
     const mergedHeaders: Record<string, string> = { ...sessionHeaders };
     try {
       if (headersJson && headersJson.trim() !== "{}") {
@@ -51,13 +50,24 @@ export const executeHttpRequestTool = tool(
         headers: mergedHeaders,
         params,
         data,
-        validateStatus: () => true, // Don't throw on 4xx/5xx so agent can inspect response
+        validateStatus: () => true,
         timeout: 15000,
       });
 
       const elapsedMs = Date.now() - startTime;
-      const statusColor = response.status >= 200 && response.status < 300 ? chalk.green : chalk.red;
-      console.log(`  └─ Status: ${statusColor(response.status)} | Latency: ${chalk.cyan(`${elapsedMs}ms`)}`);
+      const methodBadge = formatMethodBadge(cleanMethod);
+      const statusBadge = formatStatusBadge(response.status);
+      const latencyStr = chalk.dim(`${elapsedMs}ms`);
+
+      let pathPreview = url;
+      try {
+        const u = new URL(url);
+        pathPreview = u.pathname + (u.search || "");
+      } catch {
+        pathPreview = url;
+      }
+
+      console.log(`  ⚡ ${methodBadge} ${chalk.white(pathPreview)}  ${statusBadge}  ${latencyStr}`);
 
       const now = new Date();
       testExecutionLogs.push({
@@ -84,6 +94,7 @@ export const executeHttpRequestTool = tool(
         2
       );
     } catch (err: any) {
+      console.log(`  ✕ ${chalk.bgRed.white(` ${cleanMethod} `)} ${chalk.red(url)}  ${chalk.red(err.message)}`);
       return JSON.stringify({
         error: `Request failed: ${err.message}`,
         status_code: 0,

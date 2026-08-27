@@ -1,6 +1,6 @@
 {
   "name": "@kamrankhan027/probe-ai",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Autonomous API Schema & Reliability Inspector CLI. Probes OpenAPI specs, generates test suites, executes real-time HTTP calls, and exports Postman collections.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

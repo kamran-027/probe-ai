@@ -2,23 +2,24 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import chalk from "chalk";
-import boxen from "boxen";
 import ora from "ora";
 import readline from "readline";
 import { marked } from "marked";
 import { markedTerminal } from "marked-terminal";
 import { HumanMessage, AIMessage, BaseMessage } from "@langchain/core/messages";
 import { createProbeAgent, PROBE_SYSTEM_MESSAGE } from "./agent.js";
+import { printModernBanner } from "./ui.js";
 
-// Configure marked to render styled terminal output
+// Configure marked for clean, modern terminal rendering
 marked.use(
   markedTerminal({
     width: 90,
     reflowText: true,
     tab: 2,
-    heading: chalk.bold.cyan,
-    firstHeading: chalk.bold.magenta,
+    heading: chalk.bold.hex("#6366F1"),
+    firstHeading: chalk.bold.hex("#A855F7"),
     strong: chalk.bold.white,
+    listitem: chalk.cyan,
     tableOptions: {
       style: {
         head: ["cyan", "bold"],
@@ -28,28 +29,8 @@ marked.use(
   }) as any
 );
 
-function printBanner() {
-  console.log(
-    boxen(
-      `${chalk.bold.cyan("🔍 ProbeAI — Autonomous API Reliability & Postman Suite Generator")}\n` +
-        `${chalk.dim("TypeScript CLI Edition • Dynamic Auth • Postman v2.1 Exporter • HTML Reports")}\n\n` +
-        `${chalk.yellow("Try prompts like:")}\n` +
-        ` • 'Inspect https://bookmark-agent-backend.onrender.com and export a Postman collection'\n` +
-        ` • 'Test all endpoints on https://bookmark-agent-backend.onrender.com and save an HTML report'\n` +
-        ` • 'Set auth Bearer my_secret_token and test protected routes'\n` +
-        ` • Type ${chalk.bold.red("'exit'")} to quit`,
-      {
-        padding: 1,
-        margin: 1,
-        borderStyle: "round",
-        borderColor: "cyan",
-      }
-    )
-  );
-}
-
 async function main() {
-  printBanner();
+  printModernBanner("1.0.4");
 
   const rl = readline.createInterface({
     input: process.stdin,
@@ -69,14 +50,14 @@ async function main() {
   if (!apiKey) {
     console.log(chalk.yellow("🔑 No GEMINI_API_KEY found in your environment or .env file."));
     console.log(chalk.dim("Get a free key from https://aistudio.google.com/\n"));
-    apiKey = await promptUser(chalk.bold.cyan("Enter your Gemini API Key: "));
+    apiKey = await promptUser(chalk.bold.hex("#6366F1")("Enter your Gemini API Key: "));
     
     if (!apiKey) {
       console.log(chalk.red("\nError: An API key is required to run ProbeAI. Exiting...\n"));
       rl.close();
       process.exit(1);
     }
-    console.log(chalk.green("✅ API Key registered for this session.\n"));
+    console.log(chalk.hex("#10B981")("✓ API Key registered for this session.\n"));
   }
 
   const app = createProbeAgent(apiKey);
@@ -84,19 +65,21 @@ async function main() {
 
   while (true) {
     try {
-      const input = await promptUser(chalk.bold.green("\nYou: "));
+      const promptSymbol = chalk.bold.hex("#6366F1")("❯ ");
+      const input = await promptUser(`\n${promptSymbol}`);
       if (!input) continue;
 
       if (input.toLowerCase() === "exit" || input.toLowerCase() === "quit") {
-        console.log(chalk.cyan("\nGoodbye! 👋\n"));
+        console.log(chalk.hex("#6366F1")("\nGoodbye! 👋\n"));
         rl.close();
         process.exit(0);
       }
 
+      console.log(); // Clean line break
       messages.push(new HumanMessage(input));
 
       const spinner = ora({
-        text: chalk.dim("ProbeAI thinking..."),
+        text: chalk.dim("Synthesizing test scenarios & auditing schemas..."),
         color: "cyan",
       }).start();
 
@@ -118,7 +101,12 @@ async function main() {
       spinner.stop();
 
       if (finalResponse) {
-        console.log("\n" + chalk.bold.cyan("━━━━━━━━━━━━━━━━━━━━━━━━ ProbeAI Assessment ━━━━━━━━━━━━━━━━━━━━━━━━\n"));
+        console.log(
+          "\n" +
+            chalk.hex("#6366F1")(
+              "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ProbeAI Assessment ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            )
+        );
         const rendered = marked(finalResponse);
         console.log(rendered);
       }

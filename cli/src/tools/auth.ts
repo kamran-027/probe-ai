@@ -3,6 +3,7 @@ import { z } from "zod";
 import axios from "axios";
 import chalk from "chalk";
 import { sessionHeaders } from "./state.js";
+import { logStep } from "../ui.js";
 
 export const authenticateViaLoginTool = tool(
   async ({
@@ -16,7 +17,7 @@ export const authenticateViaLoginTool = tool(
     payloadJson?: string;
     tokenField?: string;
   }) => {
-    console.log(chalk.green(`\n🔐 [Tool: authenticate_via_login] Authenticating at: ${loginUrl}`));
+    logStep("🔐", "Authenticating via login endpoint...", chalk.dim(loginUrl));
 
     let payload = {};
     try {
@@ -47,13 +48,15 @@ export const authenticateViaLoginTool = tool(
       }
 
       if (!token) {
+        logStep("✕", "Login succeeded but token field not found", chalk.red(tokenField));
         return `Login succeeded (HTTP ${res.status}), but token field '${tokenField}' was not found in response: ${JSON.stringify(data)}`;
       }
 
       sessionHeaders["Authorization"] = `Bearer ${token}`;
-      console.log(chalk.green(`  └─ Success! Extracted token and bound 'Authorization: Bearer ...' to session.`));
+      logStep("✓", "Extracted Bearer token & saved to session", chalk.hex("#10B981")("Authorization: Bearer ••••••"));
       return `Authentication successful. Bearer token extracted from '${tokenField}' and saved to session headers.`;
     } catch (err: any) {
+      logStep("✕", "Login failed", chalk.red(err.message));
       return `Login request failed: ${err.message}`;
     }
   },
@@ -81,7 +84,7 @@ export const setAuthHeaderTool = tool(
     }
 
     sessionHeaders[headerName] = cleanVal;
-    console.log(chalk.green(`\n🔑 [Tool: set_auth_header] Set '${headerName}' header in session.`));
+    logStep("🔑", `Set auth header: ${headerName}`, chalk.hex("#10B981")("••••••"));
     return `Successfully set '${headerName}' header in session.`;
   },
   {

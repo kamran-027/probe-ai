@@ -4,6 +4,7 @@ import axios from "axios";
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
+import { logStep } from "../ui.js";
 
 export const exportPostmanCollectionTool = tool(
   async ({
@@ -13,12 +14,12 @@ export const exportPostmanCollectionTool = tool(
     baseUrl: string;
     outputFilename?: string;
   }) => {
-    console.log(chalk.magenta(`\n📦 [Tool: export_postman_collection] Exporting Postman collection...`));
-
     let targetUrl = baseUrl.replace(/\/+$/, "");
     if (!targetUrl.endsWith("openapi.json")) {
       targetUrl = `${targetUrl}/openapi.json`;
     }
+
+    logStep("📦", "Generating Postman v2.1 Collection...", chalk.dim(baseUrl));
 
     try {
       const res = await axios.get(targetUrl, { timeout: 10000 });
@@ -74,9 +75,10 @@ export const exportPostmanCollectionTool = tool(
       const outPath = path.join(reportsDir, path.basename(outputFilename));
       fs.writeFileSync(outPath, JSON.stringify(postmanCollection, null, 2));
 
-      console.log(chalk.green(`  └─ Saved Postman Collection to: ${outPath}`));
+      logStep("✓", `Saved Postman Collection (${postmanItems.length} routes)`, chalk.hex("#10B981")(outPath));
       return `Postman collection with ${postmanItems.length} endpoints successfully generated at '${outPath}'. You can import this directly into Postman/Bruno/Insomnia!`;
     } catch (err: any) {
+      logStep("✕", "Postman Export Failed", chalk.red(err.message));
       return `Failed to export Postman collection: ${err.message}`;
     }
   },

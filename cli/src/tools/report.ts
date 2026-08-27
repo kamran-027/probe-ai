@@ -4,6 +4,7 @@ import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import { testExecutionLogs } from "./state.js";
+import { logStep } from "../ui.js";
 
 export const saveHtmlAuditReportTool = tool(
   async ({
@@ -119,7 +120,7 @@ export const saveHtmlAuditReportTool = tool(
 `;
 
     fs.writeFileSync(outPath, htmlContent);
-    console.log(chalk.green(`\n📊 [Tool: save_html_audit_report] Interactive HTML Report saved to: ${outPath}`));
+    logStep("📊", "Generated HTML Audit Dashboard", chalk.hex("#10B981")(outPath));
     return `HTML audit report successfully generated at '${outPath}'. Open it in your browser to view the interactive dashboard!`;
   },
   {
