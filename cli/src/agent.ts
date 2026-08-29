@@ -1,4 +1,3 @@
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { StateGraph, START, Annotation } from "@langchain/langgraph";
 import { BaseMessage, SystemMessage, AIMessage } from "@langchain/core/messages";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
@@ -8,6 +7,7 @@ import { authenticateViaLoginTool, setAuthHeaderTool } from "./tools/auth.js";
 import { executeHttpRequestTool } from "./tools/http.js";
 import { exportPostmanCollectionTool } from "./tools/postman.js";
 import { saveHtmlAuditReportTool } from "./tools/report.js";
+import { createChatModel, ProviderConfig } from "./model-factory.js";
 
 const tools = [
   fetchOpenApiSpecTool,
@@ -28,13 +28,9 @@ export const GraphState = Annotation.Root({
   }),
 });
 
-export function createProbeAgent(apiKey: string) {
-  const model = new ChatGoogleGenerativeAI({
-    model: "gemini-3.6-flash",
-    temperature: 0.2,
-    apiKey,
-    maxRetries: 3, // Auto-retry on transient Google 503 spikes
-  }).bindTools(tools);
+export function createProbeAgent(config: ProviderConfig) {
+  const baseModel = createChatModel(config);
+  const model = baseModel.bindTools(tools);
 
   const callModel = async (state: typeof GraphState.State) => {
     const response = await model.invoke(state.messages);
