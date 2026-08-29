@@ -9,6 +9,7 @@ import { markedTerminal } from "marked-terminal";
 import { HumanMessage, AIMessage, BaseMessage } from "@langchain/core/messages";
 import { createProbeAgent, PROBE_SYSTEM_MESSAGE } from "./agent.js";
 import { printModernBanner } from "./ui.js";
+import { resolveProviderConfig } from "./wizard.js";
 
 // Configure marked for clean, modern terminal rendering
 marked.use(
@@ -30,7 +31,19 @@ marked.use(
 );
 
 async function main() {
-  printModernBanner("1.0.4");
+  printModernBanner("1.1.0");
+
+  const providerConfig = await resolveProviderConfig();
+  console.log(
+    chalk.hex("#10B981")(
+      `\n✓ Connected to ${providerConfig.provider.toUpperCase()} engine${
+        providerConfig.modelName ? ` (${providerConfig.modelName})` : ""
+      }\n`
+    )
+  );
+
+  const app = createProbeAgent(providerConfig);
+  const messages: BaseMessage[] = [PROBE_SYSTEM_MESSAGE];
 
   const rl = readline.createInterface({
     input: process.stdin,
@@ -44,24 +57,6 @@ async function main() {
       });
     });
   };
-
-  let apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-
-  if (!apiKey) {
-    console.log(chalk.yellow("🔑 No GEMINI_API_KEY found in your environment or .env file."));
-    console.log(chalk.dim("Get a free key from https://aistudio.google.com/\n"));
-    apiKey = await promptUser(chalk.bold.hex("#6366F1")("Enter your Gemini API Key: "));
-    
-    if (!apiKey) {
-      console.log(chalk.red("\nError: An API key is required to run ProbeAI. Exiting...\n"));
-      rl.close();
-      process.exit(1);
-    }
-    console.log(chalk.hex("#10B981")("✓ API Key registered for this session.\n"));
-  }
-
-  const app = createProbeAgent(apiKey);
-  const messages: BaseMessage[] = [PROBE_SYSTEM_MESSAGE];
 
   while (true) {
     try {

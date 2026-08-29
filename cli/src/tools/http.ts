@@ -107,9 +107,9 @@ export const executeHttpRequestTool = tool(
     schema: z.object({
       method: z.string().describe("HTTP method, e.g. GET, POST, DELETE"),
       url: z.string().describe("Target endpoint URL"),
-      headersJson: z.string().optional().describe("Optional JSON string of custom headers"),
-      paramsJson: z.string().optional().describe("Optional JSON string of query parameters"),
-      bodyJson: z.string().optional().describe("Optional JSON string payload body"),
+      headersJson: z.string().default("{}").describe("Optional JSON string of custom headers"),
+      paramsJson: z.string().default("{}").describe("Optional JSON string of query parameters"),
+      bodyJson: z.string().default("{}").describe("Optional JSON string payload body"),
     }),
   }
 );

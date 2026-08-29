@@ -65,9 +65,9 @@ export const authenticateViaLoginTool = tool(
     description: "Execute a login or token generation endpoint (e.g. POST /auth/login with credentials), extract the bearer token from JSON response, and save it to the session headers.",
     schema: z.object({
       loginUrl: z.string().describe("The URL of the login/auth endpoint"),
-      method: z.string().optional().describe("HTTP method (default: POST)"),
-      payloadJson: z.string().optional().describe("JSON string payload with email/username/password"),
-      tokenField: z.string().optional().describe("Field name containing the token in JSON response (default: access_token)"),
+      method: z.string().default("POST").describe("HTTP method (default: POST)"),
+      payloadJson: z.string().default("{}").describe("JSON string payload with email/username/password"),
+      tokenField: z.string().default("access_token").describe("Field name containing the token in JSON response (default: access_token)"),
     }),
   }
 );

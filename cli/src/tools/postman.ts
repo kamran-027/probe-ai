@@ -87,7 +87,7 @@ export const exportPostmanCollectionTool = tool(
     description: "Generate a ready-to-import Postman Collection v2.1.0 JSON file directly from the base URL's OpenAPI spec.",
     schema: z.object({
       baseUrl: z.string().describe("The base URL of the API server"),
-      outputFilename: z.string().optional().describe("Output filename (default: probe_collection.json)"),
+      outputFilename: z.string().default("probe_collection.json").describe("Output filename (default: probe_collection.json)"),
     }),
   }
 );

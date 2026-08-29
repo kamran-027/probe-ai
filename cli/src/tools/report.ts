@@ -127,8 +127,8 @@ export const saveHtmlAuditReportTool = tool(
     name: "save_html_audit_report",
     description: "Generate an executive standalone single-page HTML audit report with health scores, latency metrics, and expandable request/response inspection accordions.",
     schema: z.object({
-      filename: z.string().optional().describe("Report filename (default: audit_report.html)"),
-      reportTitle: z.string().optional().describe("Title for the report"),
+      filename: z.string().default("audit_report.html").describe("Report filename (default: audit_report.html)"),
+      reportTitle: z.string().default("ProbeAI API Audit Report").describe("Title for the report"),
     }),
   }
 );
