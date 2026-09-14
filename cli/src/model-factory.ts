@@ -52,7 +52,7 @@ export function createChatModel(config: ProviderConfig): BaseChatModel {
 
     case "openrouter":
       return new ChatOpenAI({
-        model: modelName || process.env.OPENROUTER_MODEL || "qwen/qwen-2.5-coder-32b-instruct:free",
+        model: modelName || process.env.OPENROUTER_MODEL || "z-ai/glm-5.3-flash",
         temperature: 0.2,
         apiKey,
         configuration: {

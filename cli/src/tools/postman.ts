@@ -14,16 +14,37 @@ export const exportPostmanCollectionTool = tool(
     baseUrl: string;
     outputFilename?: string;
   }) => {
-    let targetUrl = baseUrl.replace(/\/+$/, "");
-    if (!targetUrl.endsWith("openapi.json")) {
-      targetUrl = `${targetUrl}/openapi.json`;
-    }
+    const cleanBase = baseUrl.replace(/\/+$/, "");
+    const candidatePaths = cleanBase.endsWith(".json") || cleanBase.endsWith(".yaml") || cleanBase.endsWith(".yml")
+      ? [cleanBase]
+      : [
+          `${cleanBase}/openapi.json`,
+          `${cleanBase}/swagger.json`,
+          `${cleanBase}/v3/api-docs`,
+          `${cleanBase}/api-docs`,
+          `${cleanBase}/api/openapi.json`,
+        ];
 
-    logStep("📦", "Generating Postman v2.1 Collection...", chalk.dim(baseUrl));
+    logStep("📦", "Generating Postman v2.1 Collection...", chalk.dim(cleanBase));
 
     try {
-      const res = await axios.get(targetUrl, { timeout: 10000 });
-      const spec = res.data;
+      let spec: any = null;
+      for (const url of candidatePaths) {
+        try {
+          const res = await axios.get(url, { timeout: 6000, validateStatus: (s) => s === 200 });
+          if (res.data && (res.data.paths || res.data.openapi || res.data.swagger)) {
+            spec = res.data;
+            break;
+          }
+        } catch {
+          // try next
+        }
+      }
+
+      if (!spec) {
+        logStep("✕", "Postman Export Failed", chalk.yellow("No OpenAPI/Swagger spec discovered on server"));
+        return `Failed to export Postman collection: No OpenAPI or Swagger spec file was exposed at ${cleanBase}. Probe tested /openapi.json, /swagger.json, /v3/api-docs, /api-docs.`;
+      }
 
       const collectionName = spec.info?.title || "Exported API Collection";
       const postmanItems: any[] = [];

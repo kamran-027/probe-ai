@@ -66,7 +66,7 @@ export async function resolveProviderConfig(): Promise<ProviderConfig> {
         value: "groq",
       },
       {
-        name: `${chalk.bold.hex("#3B82F6")("🌐 OpenRouter")} ${chalk.dim("(DeepSeek V4/R1, Qwen 3.5/2.5 Coder, Mistral)")}`,
+        name: `${chalk.bold.hex("#3B82F6")("🌐 OpenRouter")} ${chalk.dim("(GLM 5.3 Flash, DeepSeek V4.1, Llama 3.3)")}`,
         value: "openrouter",
       },
       {
@@ -107,7 +107,7 @@ export async function resolveProviderConfig(): Promise<ProviderConfig> {
     openai: "gpt-4o (or gpt-5.6, gpt-4o-mini, o3-mini)",
     anthropic: "claude-3-5-sonnet-latest (or claude-sonnet-5, claude-opus-5)",
     groq: "openai/gpt-oss-120b (or openai/gpt-oss-20b, qwen/qwen3.6-27b)",
-    openrouter: "qwen/qwen-2.5-coder-32b-instruct:free (or deepseek/deepseek-r1:free)",
+    openrouter: "z-ai/glm-5.3-flash (or deepseek/deepseek-v4.1-flash, meta-llama/llama-3.3-70b-instruct)",
   };
 
   const customModel = await input({

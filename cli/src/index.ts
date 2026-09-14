@@ -59,41 +59,80 @@ async function main() {
   };
 
   while (true) {
+    let spinner: any = null;
     try {
       const promptSymbol = chalk.bold.hex("#6366F1")("❯ ");
       const input = await promptUser(`\n${promptSymbol}`);
       if (!input) continue;
 
-      if (input.toLowerCase() === "exit" || input.toLowerCase() === "quit") {
+      const trimmed = input.trim();
+
+      if (trimmed.toLowerCase() === "exit" || trimmed.toLowerCase() === "quit" || trimmed.toLowerCase() === "/exit") {
         console.log(chalk.hex("#6366F1")("\nGoodbye! 👋\n"));
         rl.close();
         process.exit(0);
       }
 
+      if (trimmed.toLowerCase() === "/clear") {
+        console.clear();
+        printModernBanner("1.1.5");
+        continue;
+      }
+
+      if (trimmed.toLowerCase() === "/reset") {
+        messages.length = 0;
+        messages.push(PROBE_SYSTEM_MESSAGE);
+        console.log(chalk.hex("#10B981")("\n✓ Conversation session reset.\n"));
+        continue;
+      }
+
+      if (trimmed.toLowerCase() === "/help") {
+        console.log(
+          chalk.dim("\nProbeAI Commands & Examples:") +
+            chalk.cyan("\n  /clear") + chalk.dim(" - Clear screen") +
+            chalk.cyan("\n  /reset") + chalk.dim(" - Reset conversation memory") +
+            chalk.cyan("\n  /exit ") + chalk.dim(" - Quit ProbeAI") +
+            chalk.yellow("\n\nExample Prompts:") +
+            chalk.white("\n  • Inspect http://localhost:8000 and export Postman collection") +
+            chalk.white("\n  • Test all endpoints on https://bookmark-agent-backend.onrender.com") +
+            chalk.white("\n  • Set auth Bearer <jwt_token> and test protected routes\n")
+        );
+        continue;
+      }
+
       console.log(); // Clean line break
       messages.push(new HumanMessage(input));
 
-      const spinner = ora({
+      spinner = ora({
         text: chalk.dim("Synthesizing test scenarios & auditing schemas..."),
         color: "cyan",
       }).start();
 
       let finalResponse = "";
+      let updatedMessages = messages;
 
       const stream = await app.stream({ messages }, { streamMode: "values" });
       for await (const event of stream) {
-        if (event && event.messages) {
+        if (event && event.messages && event.messages.length > 0) {
+          updatedMessages = event.messages;
           const lastMsg = event.messages[event.messages.length - 1];
           if (
             lastMsg instanceof AIMessage &&
             (!lastMsg.tool_calls || lastMsg.tool_calls.length === 0)
           ) {
-            finalResponse = lastMsg.content as string;
+            finalResponse =
+              typeof lastMsg.content === "string"
+                ? lastMsg.content
+                : JSON.stringify(lastMsg.content, null, 2);
           }
         }
       }
 
       spinner.stop();
+
+      // Persist full conversation state for subsequent turns
+      messages.length = 0;
+      messages.push(...updatedMessages);
 
       if (finalResponse) {
         console.log(
@@ -106,7 +145,15 @@ async function main() {
         console.log(rendered);
       }
     } catch (err: any) {
+      if (spinner && spinner.isSpinning) {
+        spinner.stop();
+      }
+      // If turn failed, rollback the last unfulfilled HumanMessage to prevent corrupted state
+      if (messages[messages.length - 1] instanceof HumanMessage) {
+        messages.pop();
+      }
       console.log(chalk.red(`\nAn error occurred: ${err.message}`));
+      console.log(chalk.dim("Session preserved. You can continue chatting or type /reset to restart."));
     }
   }
 }

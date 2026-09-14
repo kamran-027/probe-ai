@@ -6,17 +6,45 @@ import { logStep } from "../ui.js";
 
 export const fetchOpenApiSpecTool = tool(
   async ({ baseUrl }: { baseUrl: string }) => {
-    let targetUrl = baseUrl.replace(/\/+$/, "");
-    if (!targetUrl.endsWith("openapi.json")) {
-      targetUrl = `${targetUrl}/openapi.json`;
+    const cleanBase = baseUrl.replace(/\/+$/, "");
+    const candidatePaths = cleanBase.endsWith(".json") || cleanBase.endsWith(".yaml") || cleanBase.endsWith(".yml")
+      ? [cleanBase]
+      : [
+          `${cleanBase}/openapi.json`,
+          `${cleanBase}/swagger.json`,
+          `${cleanBase}/v3/api-docs`,
+          `${cleanBase}/api-docs`,
+          `${cleanBase}/api/openapi.json`,
+          `${cleanBase}/docs/openapi.json`,
+        ];
+
+    logStep("🔍", "Probing API Documentation Specs...", chalk.cyan(cleanBase));
+
+    let spec: any = null;
+    let resolvedUrl = "";
+
+    for (const url of candidatePaths) {
+      try {
+        const response = await axios.get(url, { timeout: 6000, validateStatus: (s) => s === 200 });
+        if (response.data && (response.data.paths || response.data.openapi || response.data.swagger)) {
+          spec = response.data;
+          resolvedUrl = url;
+          break;
+        }
+      } catch {
+        // try next candidate path
+      }
     }
 
-    logStep("🔍", "Probing OpenAPI Spec", chalk.cyan(targetUrl));
+    if (!spec) {
+      logStep("✕", "No OpenAPI/Swagger spec discovered", chalk.yellow("Probed /openapi.json, /swagger.json, /v3/api-docs, /api-docs"));
+      return JSON.stringify({
+        status: "not_found",
+        message: `No OpenAPI or Swagger spec file was exposed at ${cleanBase}. Probed paths: /openapi.json, /swagger.json, /v3/api-docs, /api-docs. You can test routes directly using execute_http_request by specifying the method and path (e.g. GET /api/v1/health or POST /auth/login), or ask the user for specific route details.`,
+      });
+    }
 
     try {
-      const response = await axios.get(targetUrl, { timeout: 10000 });
-      const spec = response.data;
-
       const info = spec.info || {};
       const paths = spec.paths || {};
       const components = spec.components || {};
@@ -36,22 +64,23 @@ export const fetchOpenApiSpecTool = tool(
         }
       }
 
-      logStep("✓", `Discovered ${endpointsSummary.length} endpoints`, chalk.dim(`(API v${info.version || "1.0"})`));
+      logStep("✓", `Discovered ${endpointsSummary.length} endpoints`, chalk.dim(`from ${resolvedUrl} (v${info.version || "1.0"})`));
 
       return JSON.stringify(
         {
           title: info.title || "API Spec",
           version: info.version || "1.0",
+          spec_url: resolvedUrl,
           security_schemes: securitySchemes,
           endpoint_count: endpointsSummary.length,
-          endpoints: endpointsSummary.slice(0, 15),
+          endpoints: endpointsSummary.slice(0, 25),
         },
         null,
         2
       );
     } catch (err: any) {
-      logStep("✕", "Could not fetch OpenAPI spec", chalk.red(err.message));
-      return `Could not fetch OpenAPI spec from ${targetUrl}: ${err.message}`;
+      logStep("✕", "Failed to parse spec format", chalk.red(err.message));
+      return `Discovered spec at ${resolvedUrl} but failed to parse: ${err.message}`;
     }
   },
   {

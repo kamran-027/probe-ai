@@ -60,6 +60,7 @@ export const PROBE_SYSTEM_MESSAGE = new SystemMessage(
     "When the user interacts with you:\n" +
     "1. For API Inspection & Testing:\n" +
     "   - Call fetch_openapi_spec to discover endpoints & security schemes.\n" +
+    "   - If fetch_openapi_spec returns that no OpenAPI spec is exposed, inform the user clearly which paths were probed, and offer to test specific endpoints directly using execute_http_request if they provide paths (e.g. GET /api/v1/health, POST /auth/login).\n" +
     "   - If authentication is required or requested, use authenticate_via_login or set_auth_header.\n" +
     "   - Formulate 3-4 distinct test cases (Happy Path, Query Filters, Error cases).\n" +
     "   - STRICT BUDGET RULE: Execute at most 4 to 5 execute_http_request calls in total.\n" +
