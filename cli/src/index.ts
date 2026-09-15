@@ -31,7 +31,7 @@ marked.use(
 );
 
 async function main() {
-  printModernBanner("1.2.1");
+  printModernBanner("1.2.2");
 
   const providerConfig = await resolveProviderConfig();
   console.log(
@@ -75,7 +75,7 @@ async function main() {
 
       if (trimmed.toLowerCase() === "/clear") {
         console.clear();
-        printModernBanner("1.2.1");
+        printModernBanner("1.2.2");
         continue;
       }
 
