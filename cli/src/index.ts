@@ -8,16 +8,17 @@ import { marked } from "marked";
 import { markedTerminal } from "marked-terminal";
 import { HumanMessage, AIMessage, BaseMessage } from "@langchain/core/messages";
 import { createProbeAgent, PROBE_SYSTEM_MESSAGE } from "./agent.js";
-import { printModernBanner } from "./ui.js";
+import { printExecutiveBanner, printHelpMenu, renderSessionContextBar } from "./ui.js";
 import { resolveProviderConfig } from "./wizard.js";
+import { sessionContext, sessionHeaders, testExecutionLogs } from "./tools/state.js";
 
 // Configure marked for clean, modern terminal rendering
 marked.use(
   markedTerminal({
-    width: 90,
+    width: 92,
     reflowText: true,
     tab: 2,
-    heading: chalk.bold.hex("#6366F1"),
+    heading: chalk.bold.hex("#818CF8"),
     firstHeading: chalk.bold.hex("#A855F7"),
     strong: chalk.bold.white,
     listitem: chalk.cyan,
@@ -31,15 +32,14 @@ marked.use(
 );
 
 async function main() {
-  printModernBanner("1.2.2");
-
   const providerConfig = await resolveProviderConfig();
-  console.log(
-    chalk.hex("#10B981")(
-      `\n✓ Connected to ${providerConfig.provider.toUpperCase()} engine${
-        providerConfig.modelName ? ` (${providerConfig.modelName})` : ""
-      }\n`
-    )
+  console.clear();
+  printExecutiveBanner(
+    "1.2.2",
+    providerConfig.provider,
+    providerConfig.modelName,
+    sessionContext.targetUrl,
+    sessionContext.authDescription
   );
 
   const app = createProbeAgent(providerConfig);
@@ -61,51 +61,97 @@ async function main() {
   while (true) {
     let spinner: any = null;
     try {
-      const promptSymbol = chalk.bold.hex("#6366F1")("❯ ");
+      renderSessionContextBar(
+        sessionContext.targetUrl,
+        sessionContext.authDescription,
+        providerConfig.modelName || providerConfig.provider
+      );
+
+      const promptSymbol = chalk.hex("#818CF8").bold("probe-ai ❯ ");
       const input = await promptUser(`\n${promptSymbol}`);
       if (!input) continue;
 
       const trimmed = input.trim();
 
       if (trimmed.toLowerCase() === "exit" || trimmed.toLowerCase() === "quit" || trimmed.toLowerCase() === "/exit") {
-        console.log(chalk.hex("#6366F1")("\nGoodbye! 👋\n"));
+        console.log(chalk.hex("#818CF8")("\nGoodbye! 👋\n"));
         rl.close();
         process.exit(0);
       }
 
       if (trimmed.toLowerCase() === "/clear") {
         console.clear();
-        printModernBanner("1.2.2");
+        printExecutiveBanner(
+          "1.2.2",
+          providerConfig.provider,
+          providerConfig.modelName,
+          sessionContext.targetUrl,
+          sessionContext.authDescription
+        );
         continue;
       }
 
       if (trimmed.toLowerCase() === "/reset") {
         messages.length = 0;
         messages.push(PROBE_SYSTEM_MESSAGE);
-        console.log(chalk.hex("#10B981")("\n✓ Conversation session reset.\n"));
+        console.log(chalk.hex("#10B981")("\n  ✓ Conversation session reset.\n"));
         continue;
       }
 
       if (trimmed.toLowerCase() === "/help") {
+        printHelpMenu();
+        continue;
+      }
+
+      if (trimmed.toLowerCase().startsWith("/target")) {
+        const parts = trimmed.split(/\s+/);
+        if (parts.length > 1) {
+          sessionContext.targetUrl = parts[1].trim();
+          console.log(chalk.hex("#10B981")(`\n  ✓ Active target URL set to: ${chalk.white.underline(sessionContext.targetUrl)}\n`));
+        } else {
+          console.log(chalk.yellow(`\n  Usage: /target http://localhost:8000\n`));
+        }
+        continue;
+      }
+
+      if (trimmed.toLowerCase().startsWith("/auth")) {
+        const parts = trimmed.split(/\s+/);
+        if (parts.length > 1) {
+          const rawToken = parts.slice(1).join(" ").trim();
+          const token = rawToken.toLowerCase().startsWith("bearer ") ? rawToken : `Bearer ${rawToken}`;
+          sessionHeaders["Authorization"] = token;
+          sessionContext.authDescription = `Bearer ••••••${token.slice(-4)}`;
+          console.log(chalk.hex("#10B981")(`\n  ✓ Authentication header saved: ${chalk.white(sessionContext.authDescription)}\n`));
+        } else {
+          console.log(chalk.yellow(`\n  Usage: /auth <bearer_token_or_key>\n`));
+        }
+        continue;
+      }
+
+      if (trimmed.toLowerCase() === "/status") {
         console.log(
-          chalk.dim("\nProbeAI Commands & Examples:") +
-            chalk.cyan("\n  /clear") + chalk.dim(" - Clear screen") +
-            chalk.cyan("\n  /reset") + chalk.dim(" - Reset conversation memory") +
-            chalk.cyan("\n  /exit ") + chalk.dim(" - Quit ProbeAI") +
-            chalk.yellow("\n\nExample Prompts:") +
-            chalk.white("\n  • Inspect http://localhost:8000 and export Postman collection") +
-            chalk.white("\n  • Test all endpoints on https://bookmark-agent-backend.onrender.com") +
-            chalk.white("\n  • Set auth Bearer <jwt_token> and test protected routes\n")
+          chalk.hex("#818CF8").bold("\n  PROBE·AI  ·  Active Session Status\n") +
+          `  ${chalk.dim("Target URL:")}      ${sessionContext.targetUrl ? chalk.white.underline(sessionContext.targetUrl) : chalk.dim("None")}\n` +
+          `  ${chalk.dim("Auth Status:")}     ${sessionContext.authDescription !== "None" ? chalk.hex("#F59E0B")(sessionContext.authDescription) : chalk.dim("None")}\n` +
+          `  ${chalk.dim("AI Engine:")}       ${chalk.cyan(providerConfig.provider.toUpperCase())} ${providerConfig.modelName ? chalk.dim(`(${providerConfig.modelName})`) : ""}\n` +
+          `  ${chalk.dim("HTTP Calls Run:")}  ${chalk.white(testExecutionLogs.length.toString())}\n`
         );
         continue;
+      }
+
+      // Auto-detect target URL if mentioned in prompt
+      const urlMatch = trimmed.match(/https?:\/\/[^\s]+/i);
+      if (urlMatch && !sessionContext.targetUrl) {
+        sessionContext.targetUrl = urlMatch[0].replace(/\/+$/, "");
       }
 
       console.log(); // Clean line break
       messages.push(new HumanMessage(input));
 
       spinner = ora({
-        text: chalk.dim("Synthesizing test scenarios & auditing schemas..."),
-        color: "cyan",
+        text: chalk.hex("#94A3B8")("Analyzing contracts & running reliability checks..."),
+        spinner: "dots",
+        color: "magenta",
       }).start();
 
       let finalResponse = "";
@@ -136,13 +182,17 @@ async function main() {
 
       if (finalResponse) {
         console.log(
-          "\n" +
-            chalk.hex("#6366F1")(
-              "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ProbeAI Assessment ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            )
+          chalk.hex("#4F46E5")(
+            "\n─── ProbeAI Assessment ─────────────────────────────────────────────────────────\n"
+          )
         );
         const rendered = marked(finalResponse);
         console.log(rendered);
+        console.log(
+          chalk.hex("#4F46E5")(
+            "───────────────────────────────────────────────────────────────────────────────\n"
+          )
+        );
       }
     } catch (err: any) {
       if (spinner && spinner.isSpinning) {

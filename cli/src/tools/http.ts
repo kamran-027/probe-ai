@@ -67,7 +67,7 @@ export const executeHttpRequestTool = tool(
         pathPreview = url;
       }
 
-      console.log(`  ⚡ ${methodBadge} ${chalk.white(pathPreview)}  ${statusBadge}  ${latencyStr}`);
+      console.log(`  ◆ ${methodBadge} ${chalk.white(pathPreview)}  ${statusBadge}  ${latencyStr}`);
 
       const now = new Date();
       testExecutionLogs.push({
@@ -94,7 +94,7 @@ export const executeHttpRequestTool = tool(
         2
       );
     } catch (err: any) {
-      console.log(`  ✕ ${chalk.bgRed.white(` ${cleanMethod} `)} ${chalk.red(url)}  ${chalk.red(err.message)}`);
+      console.log(`  ✕ ${methodBadge} ${chalk.red(url)}  ${chalk.red(err.message)}`);
       return JSON.stringify({
         error: `Request failed: ${err.message}`,
         status_code: 0,

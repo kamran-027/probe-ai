@@ -11,7 +11,12 @@ export interface ExecutionLog {
 }
 
 export const sessionHeaders: Record<string, string> = {
-  "User-Agent": "ProbeAI-CLI/1.0.0",
+  "User-Agent": "ProbeAI-CLI/1.2.2",
+};
+
+export const sessionContext = {
+  targetUrl: "",
+  authDescription: "None",
 };
 
 export const testExecutionLogs: ExecutionLog[] = [];

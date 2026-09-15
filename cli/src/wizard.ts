@@ -47,30 +47,30 @@ export async function resolveProviderConfig(): Promise<ProviderConfig> {
   console.log(chalk.dim("Select your AI model provider to get started:\n"));
 
   const provider = (await select({
-    message: "Choose AI Engine Provider:",
+    message: chalk.white.bold("Select AI Engine Provider:"),
     choices: [
       {
-        name: `${chalk.bold.cyan("🔷 Google Gemini")} ${chalk.dim("(Gemini 3.6 / 3.5 / 2.5 Flash - Free & Fast)")}`,
+        name: `${chalk.bold.hex("#38BDF8")("Google Gemini")}  ${chalk.dim("·  gemini-2.5-flash / gemini-3.5 (Free & Fast)")}`,
         value: "gemini",
       },
       {
-        name: `${chalk.bold.green("🟢 OpenAI")} ${chalk.dim("(GPT-5.6 Sol/Terra, GPT-4o, o3-mini, GPT-OSS)")}`,
+        name: `${chalk.bold.hex("#34D399")("OpenAI")}         ${chalk.dim("·  gpt-4o / gpt-4o-mini / o3-mini")}`,
         value: "openai",
       },
       {
-        name: `${chalk.bold.hex("#A855F7")("🟣 Anthropic Claude")} ${chalk.dim("(Sonnet 5, Opus 5, Claude 3.5 Sonnet)")}`,
+        name: `${chalk.bold.hex("#C084FC")("Anthropic")}      ${chalk.dim("·  claude-3-5-sonnet / claude-3-5-haiku")}`,
         value: "anthropic",
       },
       {
-        name: `${chalk.bold.yellow("⚡ Groq")} ${chalk.dim("(OpenAI GPT-OSS 120B / 20B, Qwen 3.6 - Free & Fast)")}`,
+        name: `${chalk.bold.hex("#FBBF24")("Groq (LPU)")}     ${chalk.dim("·  openai/gpt-oss-120b / llama-3.3-70b")}`,
         value: "groq",
       },
       {
-        name: `${chalk.bold.hex("#3B82F6")("🌐 OpenRouter")} ${chalk.dim("(GLM 5.3 Flash, DeepSeek V4.1, Llama 3.3)")}`,
+        name: `${chalk.bold.hex("#818CF8")("OpenRouter")}     ${chalk.dim("·  z-ai/glm-5.3-flash / deepseek-v4.1")}`,
         value: "openrouter",
       },
       {
-        name: `${chalk.bold.white("🦙 Ollama")} ${chalk.dim("(Local / Offline: DeepSeek-R1, Qwen Coder, Gemma 4)")}`,
+        name: `${chalk.bold.white("Ollama (Local)")}  ${chalk.dim("·  qwen2.5-coder / deepseek-r1 (Offline)")}`,
         value: "ollama",
       },
     ],
