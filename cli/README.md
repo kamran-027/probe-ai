@@ -113,5 +113,5 @@ probe-ai/
 ---
 
 <div align="center">
-Built by <b>Kamran Khan</b> as part of <b>Cadence Labs</b>.
+Built by <b>Kamran Khan</b>.
 </div>
