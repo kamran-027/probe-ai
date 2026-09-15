@@ -32,7 +32,7 @@ marked.use(
 );
 
 async function main() {
-  const providerConfig = await resolveProviderConfig();
+  let providerConfig = await resolveProviderConfig();
   console.clear();
   printExecutiveBanner(
     "1.2.2",
@@ -42,7 +42,7 @@ async function main() {
     sessionContext.authDescription
   );
 
-  const app = createProbeAgent(providerConfig);
+  let app = createProbeAgent(providerConfig);
   const messages: BaseMessage[] = [PROBE_SYSTEM_MESSAGE];
 
   const rl = readline.createInterface({

@@ -107,6 +107,7 @@ export function printHelpMenu() {
     chalk.dim("  Commands:\n") +
     `    ${chalk.cyan("/target <url>")}   ${chalk.dim("Set or switch the active target API base URL")}\n` +
     `    ${chalk.cyan("/auth <token>")}    ${chalk.dim("Inject Bearer token or API key into session")}\n` +
+    `    ${chalk.cyan("/model")}           ${chalk.dim("Switch AI engine provider, API key, or model on the fly")}\n` +
     `    ${chalk.cyan("/status")}          ${chalk.dim("Show active target, auth headers, and execution count")}\n` +
     `    ${chalk.cyan("/clear")}           ${chalk.dim("Clear terminal screen and redraw executive banner")}\n` +
     `    ${chalk.cyan("/reset")}           ${chalk.dim("Reset conversation history and graph state")}\n` +
