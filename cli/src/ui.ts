@@ -18,13 +18,8 @@ export function printExecutiveBanner(
   const targetLabel = chalk.dim("Target: ") + (targetUrl ? chalk.white.underline(targetUrl) : chalk.dim("None (set in prompt or /target)"));
   const authLabel = chalk.dim("Auth: ") + (authStatus && authStatus !== "None" ? chalk.hex("#F59E0B")(authStatus) : chalk.dim("None"));
 
-  const col1 = `  ${brand}  ${verBadge}`;
-  const col2 = `${tag}  `;
-  const padLen = Math.max(0, 68 - (col1.length + col2.length - 20));
-  const headerLine = `${col1}${" ".repeat(padLen)}${col2}`;
-
   const content =
-    `${headerLine}\n` +
+    `  ${brand}  ${verBadge}  ${chalk.dim("·")}  ${tag}\n` +
     `  ${subtitle}\n\n` +
     `  ${engineLabel}  ·  ${statusBadge}\n` +
     `  ${targetLabel}  ·  ${authLabel}`;

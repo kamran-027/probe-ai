@@ -20,7 +20,7 @@ export function createChatModel(config: ProviderConfig): BaseChatModel {
   switch (provider) {
     case "gemini":
       return new ChatGoogleGenerativeAI({
-        model: modelName || process.env.GEMINI_MODEL || "gemini-2.5-flash",
+        model: modelName || process.env.GEMINI_MODEL || "gemini-3.6-flash",
         temperature: 0.2,
         apiKey,
         maxRetries: 3,

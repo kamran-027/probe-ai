@@ -50,7 +50,7 @@ export async function resolveProviderConfig(): Promise<ProviderConfig> {
     message: chalk.white.bold("Select AI Engine Provider:"),
     choices: [
       {
-        name: `${chalk.bold.hex("#38BDF8")("Google Gemini")}  ${chalk.dim("·  gemini-2.5-flash / gemini-3.5 (Free & Fast)")}`,
+        name: `${chalk.bold.hex("#38BDF8")("Google Gemini")}  ${chalk.dim("·  gemini-3.6-flash / gemini-3.5 (Free & Fast)")}`,
         value: "gemini",
       },
       {
@@ -103,7 +103,7 @@ export async function resolveProviderConfig(): Promise<ProviderConfig> {
   }
 
   const modelHints: Record<string, string> = {
-    gemini: "gemini-2.5-flash (or gemini-3.6-flash, gemini-2.5-pro)",
+    gemini: "gemini-3.6-flash (or gemini-3.5-flash, gemini-2.5-pro)",
     openai: "gpt-4o (or gpt-5.6, gpt-4o-mini, o3-mini)",
     anthropic: "claude-3-5-sonnet-latest (or claude-sonnet-5, claude-opus-5)",
     groq: "openai/gpt-oss-120b (or openai/gpt-oss-20b, qwen/qwen3.6-27b)",
